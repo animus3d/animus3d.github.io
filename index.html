@@ -179,7 +179,7 @@
         <h2 class="title is-3">Abstract</h2>
         <div class="content has-text-justified">
           <p>
-            We present Animus3D, a text-driven 3D animation framework that addresses limitations in current motion generation techniques based on Score Distillation Sampling (SDS). Our approach introduces a novel Motion Score Distillation strategy, where a LoRA-enhanced video diffusion model defines a static source distribution in a canonical space, and a noise inversion technique ensures appearance preservation while guiding motion. To improve motion field regularization, we incorporate temporal and spatial regularization terms that reduce geometric distortions across time and space. Additionally, we propose a motion detailization module to extend temporal resolution and enhance motion details, overcoming the constraints of fixed video diffusion resolution. 
+            We present Animus3D, a text-driven 3D animation framework that addresses limitations in current motion generation techniques based on Score Distillation Sampling (SDS). Our approach introduces a novel Motion Score Distillation strategy, where a LoRA-enhanced video diffusion model defines a static source distribution in a canonical space, and a noise inversion technique ensures appearance preservation while guiding motion. To improve motion field regularization, we incorporate temporal and spatial regularization terms that reduce geometric distortions across time and space. Additionally, we propose a motion refinement module to extend temporal resolution and enhance motion details, overcoming the constraints of fixed video diffusion resolution. 
           </p> 
           <p>
             Our method enables high-quality motion generation for static 3D assets from diverse text prompts, while maintaining visual integrity. We also provide comparisons with state-of-the-art methods, demonstrating that our approach generates more substantial and fine-grained motion than existing baselines.
@@ -228,7 +228,7 @@
 
         <div class="columns">   
           <div class="column is-one-sixth">
-            <p class="has-text-centered">Input 3D model</p>
+            <p class="has-text-centered">"A lion is wandering"</p>
             <img src="./static/images/lion.png" alt="Comparison Image" style="width: 100%; height: auto;">
           </div>
 
@@ -352,7 +352,7 @@
       <div class="column is-half">
         <div class="columns">   
           <div class="column is-one-sixth">
-            <p class="has-text-centered">"A lion is wandering"</p>
+            <p class="has-text-centered">"A astronaut is walking"</p>
             <img src="./static/images/astronaut.png" alt="Comparison Image" style="width: 100%; height: auto;">
           </div>
           <div class="column is-one-sixth">
