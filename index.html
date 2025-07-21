@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="description"
+        content="Animus3D transforms a static 3D object to an animated object sequence given text descriptions via motion score distillation from pretrained video diffusion models.">
+  <meta name="keywords" content="3D Animation, 3D Gaussian Splatting, Video Diffusion">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Text-driven 3D Animation via Motion Score Distillation</title>
+
+  <!-- Global site tag (gtag.js) - Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-PYVRSFMDRL"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+
+    function gtag() {
+      dataLayer.push(arguments);
+    }
+
+    gtag('js', new Date());
+
+    gtag('config', 'G-PYVRSFMDRL');
+  </script>
+
+  <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro"
+        rel="stylesheet">
+
+  <link rel="stylesheet" href="./static/css/bulma.min.css">
+  <link rel="stylesheet" href="./static/css/bulma-carousel.min.css">
+  <link rel="stylesheet" href="./static/css/bulma-slider.min.css">
+  <link rel="stylesheet" href="./static/css/fontawesome.all.min.css">
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+  <link rel="stylesheet" href="./static/css/index.css">
+  <link rel="icon" href="./static/images/favicon.svg">
+  
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script defer src="./static/js/fontawesome.all.min.js"></script>
+  <script src="./static/js/bulma-carousel.min.js"></script>
+  <script src="./static/js/bulma-slider.min.js"></script>
+  <script src="./static/js/index.js"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+
+<nav class="navbar" role="navigation" aria-label="main navigation">
+  <div class="navbar-brand">
+    <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false">
+      <span aria-hidden="true"></span>
+      <span aria-hidden="true"></span>
+      <span aria-hidden="true"></span>
+    </a>
+  </div>
+  <div class="navbar-menu">
+    <div class="navbar-start" style="flex-grow: 1; justify-content: center;">
+      <a class="navbar-item" href="https://github.com/">
+      <span class="icon">
+          <i class="fas fa-home"></i>
+      </span>
+      </a>
+
+      <div class="navbar-item has-dropdown is-hoverable">
+        <a class="navbar-link">
+          More Research
+        </a>
+        <div class="navbar-dropdown">
+          <a class="navbar-item" href="https://github.com">
+            3d-animation
+          </a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</nav>
+
+
+<section class="hero">
+  <div class="hero-body">
+    <div class="container is-max-desktop">
+      <div class="columns is-centered">
+        <div class="column has-text-centered">
+          <h1 class="title is-1 publication-title">Animus3D: Text-driven 3D Animation via Motion Score Distillation</h1>
+          <div class="is-size-5 publication-authors">
+            <span class="author-block">
+              <a href="">Anonymous author(s)</a><sup>1</sup>,</span>
+            <span class="author-block">
+            </span>
+          </div>
+
+          <div class="column has-text-centered">
+            <div class="publication-links">
+              <!-- PDF Link. -->
+              <span class="link-block">
+                <a href="https://arxiv.org/pdf/xxxx.xxxx"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="fas fa-file-pdf"></i>
+                  </span>
+                  <span>Paper</span>
+                </a>
+              </span>
+              <!-- Video Link. -->
+              <span class="link-block">
+                <a href="https://www.youtube.com/xxxx"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="fab fa-youtube"></i>
+                  </span>
+                  <span>Video</span>
+                </a>
+              </span>
+              <!-- Code Link. -->
+              <span class="link-block">
+                <a href="https://github.com"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="fab fa-github"></i>
+                  </span>
+                  <span>Code</span>
+                  </a>
+              </span>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="hero teaser"></section>
+  <div class="container is-max-desktop">
+    <div class="hero-body">
+      <img id="teaser" src="./static/images/teaser.jpeg" alt="Animus3D Teaser" style="width: 100%; height: auto;">
+      <h2 class="subtitle has-text-centered">
+        <span class="dnerf">Animus3D</span> transforms a static 3D object to an animated object sequence given text descriptions via motion score distillation.
+      </h2>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <!-- <h2 class="title is-3">Optimization Process</h2> -->
+        <div class="columns is-centered">
+          <div class="column is-one-third">
+            <video autoplay muted loop preload playsinline width="100%">
+              <source src="./static/videos/goat-t1.mp4" type="video/mp4">
+            </video>
+            <p class="has-text-centered">Optimization time t₁</p>
+          </div>
+          <div class="column is-one-third">
+            <video autoplay muted loop preload playsinline width="100%">
+              <source src="./static/videos/goat-t2.mp4" type="video/mp4">
+            </video>
+            <p class="has-text-centered">Optimization time t₂</p>
+          </div>
+          <div class="column is-one-third">
+            <video autoplay muted loop preload playsinline width="100%">
+              <source src="./static/videos/goat-t3.mp4" type="video/mp4">
+            </video>
+            <p class="has-text-centered">Optimization time t₃</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container is-max-desktop">
+    <!-- Abstract. -->
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h2 class="title is-3">Abstract</h2>
+        <div class="content has-text-justified">
+          <p>
+            We present Animus3D, a text-driven 3D animation framework that addresses limitations in current motion generation techniques based on Score Distillation Sampling (SDS). Our approach introduces a novel Motion Score Distillation strategy, where a LoRA-enhanced video diffusion model defines a static source distribution in a canonical space, and a noise inversion technique ensures appearance preservation while guiding motion. To improve motion field regularization, we incorporate temporal and spatial regularization terms that reduce geometric distortions across time and space. Additionally, we propose a motion detailization module to extend temporal resolution and enhance motion details, overcoming the constraints of fixed video diffusion resolution. 
+          </p> 
+          <p>
+            Our method enables high-quality motion generation for static 3D assets from diverse text prompts, while maintaining visual integrity. We also provide comparisons with state-of-the-art methods, demonstrating that our approach generates more substantial and fine-grained motion than existing baselines.
+          </p>
+        </div>
+      </div>
+    </div>
+    <!--/ Abstract. -->
+
+  </div>
+
+  <section class="section">
+    <div class="container is-max-desktop">
+      <!-- Pipeline. -->
+      <div class="columns is-centered has-text-centered">
+        <div class="column is-four-fifths">
+          <h2 class="title is-3">Pipeline</h2>
+          <img src="./static/images/framework.png" alt="Animus3D Pipeline" style="width: 100%; height: auto;">
+          <div class="content has-text-justified">
+            <p>
+               Given canonical 3D Gaussian \(\mathcal G\), the motion field predicts the offset of Gaussian properties in each timestamp, obtaining the Gaussian sequence \(\mathcal G_{0:T-1}\). Then given a camera parameter, we can render the image and video from \(\mathcal G\) and \(\mathcal G_{0:T-1}\). We use video diffusion and video diffusion with LoRA to model the dynamic distribution and static distribution, respectively. Given dynamic text prompt \(c\) and static text prompt \(c'\), the loss gradient is computed with two predicted noises. The gradient will guide the optimization of the motion field. We further design temporal and spatial regularization terms for the motion field to improve the performance.
+            </p>
+          </div>
+        </div>
+      </div>
+      <!--/ Pipeline. -->
+    </div>
+  </section>
+  </div>
+
+</section>
+
+
+<section class="section">
+  <div class="container is-max-desktop">
+
+    <div class="columns is-centered has-text-centered">
+
+    <!-- Animation. -->
+    <div class="column is-full-width"></div>
+    <div class="columns is-centered">
+      
+      <div class="column is-five-fifths">
+        <h2 class="title is-3">Results</h2>
+        <h3 class="title is-6">1. Comparison with the state-of-the-art</h3>
+
+        <div class="columns">   
+          <div class="column is-one-sixth">
+            <p class="has-text-centered">Input 3D model</p>
+            <img src="./static/images/lion.png" alt="Comparison Image" style="width: 100%; height: auto;">
+          </div>
+
+          <div class="column is-one-sixth">
+            <p class="has-text-centered">4D-fy [1]</p>
+            <video autoplay muted loop preload playsinline width="100%">
+              <source src="./static/videos/lion-4dfy.mp4" type="video/mp4">
+            </video>
+          </div>
+
+          <div class="column is-one-sixth">
+            <p class="has-text-centered">Dream-in-4D [2]</p>
+            <video autoplay muted loop preload playsinline width="100%">
+              <source src="./static/videos/lion-d4d.mov" type="video/mp4">
+            </video>
+          </div>
+
+          <div class="column is-one-sixth">
+            <p class="has-text-centered">AYG [3]</p>
+            <video autoplay muted loop preload playsinline width="100%">
+              <source src="./static/videos/lion-ayg.mp4" type="video/mp4">
+            </video>
+          </div>
+
+          <div class="column is-one-sixth">
+            <p class="has-text-centered">TC4D [4]</p>
+            <video autoplay muted loop preload playsinline width="100%">
+              <source src="./static/videos/tc4d-a_lion_walking.mp4" type="video/mp4">
+            </video>
+          </div>
+          <div class="column is-one-sixth">
+            <p class="has-text-centered">Ours</p>
+            <video autoplay muted loop preload playsinline width="100%">
+              <source src="./static/videos/lion-it0-test.mp4" type="video/mp4">
+            </video>
+          </div>
+
+        </div>
+
+        <div class="columns">
+          <div class="column is-one-sixth">
+            <p class="has-text-centered">"A clown fish is swimming"</p>
+            <img src="./static/images/clown_fish.png" alt="Comparison Image" style="width: 100%; height: auto;">
+          </div>
+          <div class="column is-one-sixth">
+            <video autoplay muted loop preload playsinline width="100%">
+              <source src="./static/videos/fish-4dfy.mp4" type="video/mp4">
+            </video>
+          </div>
+          <div class="column is-one-sixth">
+            <video autoplay muted loop preload playsinline width="100%">
+              <source src="./static/videos/fish-d4d.mov" type="video/mp4">
+            </video>
+          </div>
+          <div class="column is-one-sixth">
+            <video autoplay muted loop preload playsinline width="100%">
+              <source src="./static/videos/fish-ayg.mp4" type="video/mp4">
+            </video>
+          </div>
+          <div class="column is-one-sixth">
+            <video autoplay muted loop preload playsinline width="100%">
+              <source src="./static/videos/tc4d-a_clown_fish_swimming.mp4" type="video/mp4">
+            </video>
+          </div>
+          <div class="column is-one-sixth">
+            <video autoplay muted loop preload playsinline width="100%">
+              <source src="./static/videos/clownfish.mov" type="video/mp4">
+            </video>
+          </div>
+
+
+        </div>        
+      
+        <div class="columns">
+          <div class="column is-one-sixth">
+            <p class="has-text-centered">"A giraffe is walking"</p>
+            <img src="./static/images/giraffe.png" alt="Comparison Image" style="width: 100%; height: auto;">
+          </div>
+          <div class="column is-one-sixth">
+            <video autoplay muted loop preload playsinline width="100%">
+              <source src="./static/videos/giraffe-4dfy.mp4" type="video/mp4">
+            </video>
+          </div>
+          <div class="column is-one-sixth">
+            <video autoplay muted loop preload playsinline width="100%">
+              <source src="./static/videos/giraffe-d4d.mov" type="video/mp4">
+            </video>
+          </div>
+              <div class="column is-one-sixth">
+            <video autoplay muted loop preload playsinline width="100%">
+              <source src="./static/videos/giraffe-ayg.mp4" type="video/mp4">
+            </video>
+          </div>
+          <div class="column is-one-sixth">
+            <video autoplay muted loop preload playsinline width="100%">
+              <source src="./static/videos/tc4d-a_giraffe_walking.mp4" type="video/mp4">
+            </video>
+          </div>
+          <div class="column is-one-sixth">
+            <video autoplay muted loop preload playsinline width="100%">
+              <source src="./static/videos/giraffe-it0-test.mp4" type="video/mp4">
+            </video>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!--/ Animation. -->
+
+  </div>
+</section>
+
+<section class="section">
+  <div class="container is-max-desktop">
+
+    <div class="columns is-centered has-text-centered">
+
+    <!-- Animation. -->
+    <div class="column is-full-width"></div>
+    <div class="columns is-centered">
+      
+      <div class="column is-half">
+        <div class="columns">   
+          <div class="column is-one-sixth">
+            <p class="has-text-centered">"A lion is wandering"</p>
+            <img src="./static/images/astronaut.png" alt="Comparison Image" style="width: 100%; height: auto;">
+          </div>
+          <div class="column is-one-sixth">
+            <p class="has-text-centered is-size-7">AKD [5]</p>
+            <video autoplay muted loop preload playsinline width="100%">
+              <source src="./static/videos/akd-astronaut.mov" type="video/mp4">
+            </video>
+          </div>
+          <div class="column is-one-sixth">
+             <p class="has-text-centered is-size-7">Ours</p>
+            <video autoplay muted loop preload playsinline width="100%">
+              <source src="./static/videos/astronaut-walk.mp4" type="video/mp4">
+            </video>
+        </div>    
+        </div>
+
+        <div class="columns">
+          <div class="column is-one-sixth">
+            <p class="has-text-centered">"A hippo is walking"</p>
+            <img src="./static/images/hippo.png" alt="Comparison Image" style="width: 100%; height: auto;">
+          </div>
+          <div class="column is-one-sixth">
+            <video autoplay muted loop preload playsinline height="100%">
+              <source src="./static/videos/akd-a_hippo_is_walking.mov" type="video/mp4">
+            </video>
+          </div>
+          <div class="column is-one-sixth">
+            <video autoplay muted loop preload playsinline height="100%">
+              <source src="./static/videos/hippo-it0-test.mp4" type="video/mp4">
+            </video>
+        </div>    
+      </div>    
+      
+        <div class="columns">
+          <div class="column is-one-sixth">
+            <p class="has-text-centered">"A cat is walking"</p>
+            <img src="./static/images/cat.png" alt="Comparison Image" style="width: 100%; height: auto;">
+          </div>
+          <div class="column is-one-sixth">
+            <video autoplay muted loop preload playsinline height="100%">
+              <source src="./static/videos/akd-a_cat_is_walking.mov" type="video/mp4">
+            </video>
+          </div>
+          <div class="column is-one-sixth">
+            <video autoplay muted loop preload playsinline height="100%">
+              <source src="./static/videos/cat-it0-test.mp4" type="video/mp4">
+            </video>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!--/ Animation. -->
+
+  </div>
+</section>
+
+<section class="hero is-light is-small">
+  <div class="hero-body">
+    <div class="container has-text-centered">
+      <h3 class="title is-6">2. More results on text-driven 3D Animation</h3>
+
+      <div id="results-carousel" class="carousel results-carousel">
+        <div class="item item-steve">
+          <video poster="" id="steve" autoplay controls muted loop playsinline height="100%">
+            <source src="./static/gallery/flag-it0-test.mp4"
+                    type="video/mp4">
+          </video>
+        </div>
+        <div class="item item-chair-tp">
+          <video poster="" id="chair-tp" autoplay controls muted loop playsinline height="100%">
+            <source src="./static/gallery/turtle-it0-test.mp4"
+                    type="video/mp4">
+          </video>
+        </div>
+        <div class="item item-shiba">
+          <video poster="" id="shiba" autoplay controls muted loop playsinline height="100%">
+            <source src="./static/gallery/seagull-it0-test.mp4"
+                    type="video/mp4">
+          </video>
+        </div>
+
+        <div class="item item-fullbody">
+          <video poster="" id="fullbody" autoplay controls muted loop playsinline height="100%">
+            <source src="./static/gallery/goldendoodle-it0-test.mp4"
+                    type="video/mp4">
+          </video>
+        </div>
+        <div class="item item-fullbody">
+          <video poster="" id="fullbody" autoplay controls muted loop playsinline height="100%">
+            <source src="./static/human/stormtrooper-walk.mp4"
+                    type="video/mp4">
+          </video>
+        </div>
+        <div class="item item-fullbody">
+          <video poster="" id="fullbody" autoplay controls muted loop playsinline height="100%">
+            <source src="./static/human/stormtrooper-dance.mp4"
+                    type="video/mp4">
+          </video>
+        </div>
+
+        <div class="item item-blueshirt">
+          <video poster="" id="blueshirt" autoplay controls muted loop playsinline height="100%">
+            <source src="./static/gallery/fox.mp4"
+                    type="video/mp4">
+          </video>
+        </div>
+
+        <div class="item item-coffee">
+          <video poster="" id="coffee" autoplay controls muted loop playsinline height="100%">
+            <source src="./static/gallery/shark.mp4"
+                    type="video/mp4">
+          </video>
+        </div>
+        <div class="item item-toby">
+          <video poster="" id="toby" autoplay controls muted loop playsinline height="100%">
+            <source src="./static/gallery/sheep-it10000-val.mp4"
+                    type="video/mp4">
+          </video>
+        </div>
+        <div class="item item-coffee">
+          <video poster="" id="coffee" autoplay controls muted loop playsinline height="100%">
+            <source src="./static/gallery/rino-it15000-val.mp4"
+                    type="video/mp4">
+          </video>
+        </div>
+        <div class="item item-toby">
+          <video poster="" id="toby" autoplay controls muted loop playsinline height="100%">
+            <source src="./static/gallery/robot-it16000-val.mp4"
+                    type="video/mp4">
+          </video>
+        </div>
+        
+      </div>
+    </div>
+  </div>
+  
+</section>
+
+
+<section class="section">
+
+  <div class="container is-max-desktop">
+
+    <div class="columns is-centered has-text-centered">
+
+    <!-- Animation. -->
+    <div class="column is-full-width"></div>
+    <div class="columns is-centered">
+
+      <div class="column is-five-fifths">
+        <h3 class="title is-6">Complex Cases</h3>
+        <div class="columns">   
+          <div class="column is-three-elevenths has-video-bottom-aligned">
+            <p class="has-text-centered">"A middle-age knight riding a horse is walking forward, HD, 4K"</p>
+            <video autoplay muted loop preload playsinline width="100%">
+              <source src="./static/gallery/knight.mp4" type="video/mp4">
+            </video>
+          </div>
+          <div class="column is-three-elevenths has-video-bottom-aligned">
+            <p class="has-text-centered">"An astronaut shreds an electric guitar with full, unbridled enthusiasm, 4K"</p>
+            <video autoplay muted loop preload playsinline width="100%">
+              <source src="./static/gallery/astronautguitar.mp4" type="video/mp4">
+            </video>
+          </div>
+
+          <div class="column is-three-elevenths has-video-bottom-aligned">
+            <p class="has-text-centered">"A humanoid robot is playing the violin with two legs stamping"</p>
+            <video autoplay muted loop preload playsinline width="100%">
+              <source src="./static/gallery/humanoid.mp4" type="video/mp4">
+            </video>
+          </div>
+
+          <div class="column is-three-elevenths has-video-bottom-aligned">
+            <p class="has-text-centered">"A monkey with hat is playing base guitar excitedly, HD, high-quality"</p>
+            <video autoplay muted loop preload playsinline width="100%">
+              <source src="./static/gallery/monkey.mp4" type="video/mp4">
+            </video>
+          </div>            
+          <div class="column is-three-elevenths has-video-bottom-aligned">
+            <p class="has-text-centered">"A roman soldier raising his right hand, HD, high-quality"</p>
+            <video autoplay muted loop preload playsinline width="100%">
+              <source src="./static/human/roman-hand.mp4" type="video/mp4">
+            </video>
+          </div>  
+          <div class="column is-three-elevenths has-video-bottom-aligned">
+            <p class="has-text-centered">"A roman soldier raising his right leg while raising his both arms, HD, high-quality"</p>
+            <video autoplay muted loop preload playsinline width="100%">
+              <source src="./static/human/roman-leg.mp4" type="video/mp4">
+            </video>
+          </div>  
+
+
+        </div>
+
+
+      </div>
+      
+    </div>
+    <!--/ Animation. -->
+
+  </div>
+</section>
+
+<style>
+  .has-video-bottom-aligned {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end; /* Aligns content to the bottom */
+  }
+
+  .has-video-bottom-aligned video {
+    margin-top: auto; /* Pushes the video to the bottom */
+  }
+</style>
+
+<section class="section">
+  <div class="container is-max-desktop">
+
+    <div class="columns is-centered has-text-centered">
+
+    <!-- Animation. -->
+    <div class="column is-full-width"></div>
+    <div class="columns is-centered">
+      
+      <div class="column is-five-fifths">
+        <h3 class="title is-6">3. 3D Animation results with different text prompt</h3>
+
+        <div class="columns">   
+          <div class="column is-two-elevenths">
+            <p class="has-text-centered">Input 3D model</p>
+            <img src="./static/images/spiderman.png" alt="Comparison Image" style="width: 100%; height: auto;">
+          </div>
+          <div class="column is-three-elevenths">
+            <p class="has-text-centered">"... is walking"</p>
+            <video autoplay muted loop preload playsinline width="100%">
+              <source src="./static/videos/walk.mp4" type="video/mp4">
+            </video>
+          </div>
+          <div class="column is-three-elevenths">
+            <p class="has-text-centered">"... is dancing"</p>
+            <video autoplay muted loop preload playsinline width="100%">
+              <source src="./static/videos/dance.mp4" type="video/mp4">
+            </video>
+          </div>
+
+          <div class="column is-three-elevenths">
+            <p class="has-text-centered">"... is squating down"</p>
+            <video autoplay muted loop preload playsinline width="100%">
+              <source src="./static/human/spiderman-squat.mp4" type="video/mp4">
+            </video>
+          </div>
+
+          <div class="column is-three-elevenths">
+            <p class="has-text-centered">"... is raising his arms"</p>
+            <video autoplay muted loop preload playsinline width="100%">
+              <source src="./static/human/spiderman-hands.mp4" type="video/mp4">
+            </video>
+          </div>  
+        </div>
+
+
+        <div class="columns">   
+          <div class="column is-two-elevenths">
+            <p class="has-text-centered">Input 3D model</p>
+            <img src="./static/images/soldier.png" alt="Comparison Image" style="width: 100%; height: auto;">
+          </div>
+          <div class="column is-three-elevenths">
+            <video autoplay muted loop preload playsinline width="100%">
+              <source src="./static/human/soldier-walk.mp4" type="video/mp4">
+            </video>
+          </div>
+          <div class="column is-three-elevenths">
+            <video autoplay muted loop preload playsinline width="100%">
+              <source src="./static/human/soldier-dance.mp4" type="video/mp4">
+            </video>
+          </div>
+
+          <div class="column is-three-elevenths">
+            <video autoplay muted loop preload playsinline width="100%">
+              <source src="./static/human/soldier-squat.mp4" type="video/mp4">
+            </video>
+          </div>
+
+          <div class="column is-three-elevenths">
+            <video autoplay muted loop preload playsinline width="100%">
+              <source src="./static/human/soldier-hands.mp4" type="video/mp4">
+            </video>
+          </div>  
+        </div>
+
+        <div class="columns">   
+          <div class="column is-two-elevenths">
+            <p class="has-text-centered">Input 3D model</p>
+            <img src="./static/images/roman.png" alt="Comparison Image" style="width: 100%; height: auto;">
+          </div>
+          <div class="column is-three-elevenths">
+            <video autoplay muted loop preload playsinline width="100%">
+              <source src="./static/human/roman-walk.mp4" type="video/mp4">
+            </video>
+          </div>
+          <div class="column is-three-elevenths">
+            <video autoplay muted loop preload playsinline width="100%">
+              <source src="./static/human/roman-dance.mp4" type="video/mp4">
+            </video>
+          </div>
+
+          <div class="column is-three-elevenths">
+            <video autoplay muted loop preload playsinline width="100%">
+              <source src="./static/human/roman-squat.mp4" type="video/mp4">
+            </video>
+          </div>
+
+          <div class="column is-three-elevenths">
+            <video autoplay muted loop preload playsinline width="100%">
+              <source src="./static/human/roman-hands.mp4" type="video/mp4">
+            </video>
+          </div>  
+        </div>
+
+        <div class="columns">   
+          <div class="column is-two-elevenths">
+            <p class="has-text-centered">Input 3D model</p>
+            <img src="./static/images/superman.png" alt="Comparison Image" style="width: 100%;">
+          </div>
+          <div class="column is-three-elevenths">
+            <video autoplay muted loop preload playsinline width="100%">
+              <source src="./static/human/superman-walk.mp4" type="video/mp4">
+            </video>
+          </div>
+          <div class="column is-three-elevenths">
+            <video autoplay muted loop preload playsinline width="100%">
+              <source src="./static/human/superman-dance.mp4" type="video/mp4">
+            </video>
+          </div>
+
+          <div class="column is-three-elevenths">
+            <!-- <p class="has-text-centered">"... is jogging"</p> -->
+            <video autoplay muted loop preload playsinline width="100%">
+              <source src="./static/human/superman-squat.mp4" type="video/mp4">
+            </video>
+          </div>
+
+          <div class="column is-three-elevenths">
+            <!-- <p class="has-text-centered">"... is jumping"</p> -->
+            <video autoplay muted loop preload playsinline width="100%">
+              <source src="./static/human/superman-hands.mp4" type="video/mp4">
+            </video>
+          </div>  
+        </div>
+
+        <div class="columns">   
+          <div class="column is-two-elevenths">
+            <p class="has-text-centered">Input 3D model</p>
+            <img src="./static/images/wizard.png" alt="Comparison Image" style="width: 100%; height: auto;">
+          </div>
+          <div class="column is-three-elevenths">
+            <video autoplay muted loop preload playsinline width="100%">
+              <source src="./static/human/wizard-walking.mp4" type="video/mp4">
+            </video>
+          </div>
+          <div class="column is-three-elevenths">
+            <video autoplay muted loop preload playsinline width="100%">
+              <source src="./static/human/wizard-dance.mp4" type="video/mp4">
+            </video>
+          </div>
+
+          <div class="column is-three-elevenths">
+            <video autoplay muted loop preload playsinline width="100%">
+              <source src="./static/human/wizard-squat.mp4" type="video/mp4">
+            </video>
+          </div>
+
+          <div class="column is-three-elevenths">
+            <video autoplay muted loop preload playsinline width="100%">
+              <source src="./static/human/wizard-hands.mp4" type="video/mp4">
+            </video>
+          </div>  
+        </div>
+
+
+      </div>
+      
+    </div>
+    <!--/ Animation. -->
+
+  </div>
+</section>
+
+
+
+<section class="section">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-five-fifths">
+        <h2 class="title is-3">Ablation Studies</h2>
+        
+        <!-- Ablation on Motion Score Distillation -->
+        <h3 class="title is-6"> on score distillation methods</h3>
+        <div class="columns is-centered">
+          <div class="column is-one-sixth">
+            <p class="has-text-centered">"A lion is wandering"</p>
+            <img src="./static/images/lion.png" alt="Lion" style="width: 80%; height: auto;">
+          </div>
+          <div class="column is-one-sixth">
+            <video autoplay muted loop preload playsinline width="100%">
+              <source src="./static/videos/ablation-sds-lion-it16000-val.mp4" type="video/mp4">
+            </video>
+            <p class="has-text-centered is-size-7">SDS (CFG=7.5) [6]</p>
+          </div>
+          <div class="column is-one-sixth">
+            <video autoplay muted loop preload playsinline width="100%">
+              <source src="./static/videos/ablation-vsd.mp4" type="video/mp4">
+            </video>
+            <p class="has-text-centered is-size-7">VSD [7]</p>
+          </div>
+
+          <div class="column is-one-sixth">
+            <video autoplay muted loop preload playsinline width="100%">
+              <source src="./static/videos/sds-cfg-100-val.mp4" type="video/mp4">
+            </video>
+            <p class="has-text-centered is-size-7">SDS (CFG=100)</p>
+          </div>
+          <div class="column is-one-sixth">
+            <video autoplay muted loop preload playsinline width="100%">
+              <source src="./static/videos/sdi.mp4" type="video/mp4">
+            </video>
+            <p class="has-text-centered is-size-7">MSD w/o dual distribution modeling</p>
+          </div>
+          <div class="column is-one-sixth">
+            <video autoplay muted loop preload playsinline width="100%">
+              <source src="./static/videos/ablation-wo-faithful-noise.mp4" type="video/mp4">
+            </video>
+            <p class="has-text-centered is-size-7">MSD w/o faithful noise</p>
+          </div>
+          <div class="column is-one-sixth">
+            <video autoplay muted loop preload playsinline width="100%">
+              <source src="./static/videos/full-it1-val.mp4" type="video/mp4">
+            </video>
+            <p class="has-text-centered is-size-7">MSD (Ours)</p>
+          </div>
+        </div>
+
+        <!-- Ablation on Regularization -->
+        <h3 class="title is-6"> on static distribution modeling</h3>
+        <div class="columns is-centered">
+          <div class="column is-2">
+            <p class="has-text-centered">"A elephant is walking"</p>
+            <img src="./static/images/elephant.png" alt="Tiger" style="width: 70%; height: auto;">
+          </div>
+          <div class="column is-2">
+            <video autoplay muted loop preload playsinline width="100%">
+              <source src="./static/videos/abl-static-noise-it1-val.mp4" type="video/mp4">
+            </video>
+            <p class="has-text-centered is-size-7">Static prompt</p>
+          </div>
+          <div class="column is-2">
+            <video autoplay muted loop preload playsinline width="100%">
+              <source src="./static/videos/abl-elephant-it1-val.mp4" type="video/mp4">
+            </video>
+            <p class="has-text-centered is-size-7">LoRA approximation (Ours)</p>
+          </div>
+        </div>
+
+        <!-- Ablation on Regularization -->
+        <h3 class="title is-6"> on motion regularization</h3>
+        <div class="columns is-centered">
+          <div class="column is-2">
+            <p class="has-text-centered">"A camel is walking"</p>
+            <img src="./static/images/camel.png" alt="Tiger" style="width: 70%; height: auto;">
+          </div>
+          <div class="column is-2">
+            <video autoplay muted loop preload playsinline width="100%">
+              <source src="./static/videos/w-o-jsd-camel-it5000-val.mp4" type="video/mp4">
+            </video>
+            <p class="has-text-centered is-size-7">w/o TV-3D loss</p>
+          </div>
+          <div class="column is-2">
+            <video autoplay muted loop preload playsinline width="100%">
+              <source src="./static/videos/w-o-arap-camel-it5000-val.mp4" type="video/mp4">
+            </video>
+            <p class="has-text-centered is-size-7">w/o ARAP loss</p>
+          </div>
+          <div class="column is-2">
+            <video autoplay muted loop preload playsinline width="100%">
+              <source src="./static/videos/camel-it1-val.mp4" type="video/mp4">
+            </video>
+            <p class="has-text-centered is-size-7">Full regularization (Ours)</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+    
+  </div>
+</section>
+
+<section class="section" id="BibTeX">
+
+  
+  <div class="container is-max-desktop content">
+        <div class="columns is-centered">
+      <div class="column is-full-width">
+        <h2 class="title is-3">Reference</h2>
+
+        <div class="content has-text-justified">
+          <p>
+            [1] Zheng et al., <a href="https://github.com/NVlabs/dream-in-4d/">A Unified Approach for Text- and Image-guided 4D Scene Generation</a>, CVPR 2024.
+          </p>
+          <p>
+            [2] Bahmani et al., <a href="https://github.com/sherwinbahmani/4dfy/">4D-fy: Text-to-4D Generation Using Hybrid Score Distillation Sampling</a>, CVPR 2024.
+          </p>
+          <p>
+            [3] Ling et al., <a href="https://research.nvidia.com/labs/toronto-ai/AlignYourGaussians/">Align Your Gaussians:Text-to-4D with Dynamic 3D Gaussians and Composed Diffusion Models</a>, CVPR 2024.
+          </p>
+          <p>
+            [4] Bahmani et al., <a href="https://sherwinbahmani.github.io/tc4d/">TC4D: Trajectory-Conditioned Text-to-4D Generation</a>, ECCV 2024.
+          </p>
+          <p>
+            [5] Li et al., <a href="https://research.nvidia.com/labs/dir/akd/">Articulated Kinematics Distillation from Video Diffusion Models</a>, CVPR 2025.
+          </p>
+          <p>
+            [6] Poole et al., <a href="https://arxiv.org/abs/2209.14988/">DreamFusion: Text-to-3D using 2D Diffusion</a>, ICLR 2023.
+          </p>
+          <p>
+            [7] Wang et al., <a href="https://github.com/thu-ml/prolificdreamer/">ProlificDreamer: High-Fidelity and Diverse Text-to-3D Generation with Variational Score Distillation</a>, NeurIPS 2023.
+          </p>
+
+        </div>
+      </div>
+    </div>
+    <!--/ Concurrent Work. -->
+
+    <h2 class="title">BibTeX</h2>
+    <pre><code>@article{anonymous2025text,
+  author    = {Anonymous author(s)},
+  title     = {Animus3D: Text-driven 3D Animation via Motion Score Distillation},
+  year      = {2025},
+}</code></pre>
+  </div>
+</section>
+
+
+<footer class="footer">
+  <div class="container">
+    <div class="content has-text-centered">
+      <a class="icon-link"
+         href="./static/videos/tbd.pdf">
+        <i class="fas fa-file-pdf"></i>
+      </a>
+      <a class="icon-link" href="https://github.com/" class="external-link" disabled>
+        <i class="fab fa-github"></i>
+      </a>
+    </div>
+    <div class="columns is-centered">
+      <div class="column is-8">
+        <div class="content">
+          <p>
+            This website is licensed under a <a rel="license"
+                                                href="http://creativecommons.org/licenses/by-sa/4.0/">Creative
+            Commons Attribution-ShareAlike 4.0 International License</a>.
+          </p>
+          <p>
+            This means you are free to borrow the <a
+              href="https://github.com/">source code</a> of this website,
+            we just ask that you link back to this page in the footer.
+            Please remember to remove the analytics code included in the header of the website which
+            you do not want on your website.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
